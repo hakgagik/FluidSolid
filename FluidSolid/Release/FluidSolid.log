@@ -1,0 +1,13 @@
+﻿  MACGrid.cpp
+MACGrid.cpp(570): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+MACGrid.cpp(572): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+MACGrid.cpp(575): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+MACGrid.cpp(577): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+MACGrid.cpp(579): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+MACGrid.cpp(582): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+MACGrid.cpp(584): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+MACGrid.cpp(586): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+MACGrid.cpp(589): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+  Generating code
+  Finished generating code
+  FluidSolid.vcxproj -> C:\Users\Gago\Desktop\HW Projects\CS 5643\Final project\FluidSolid\Release\FluidSolid.exe
