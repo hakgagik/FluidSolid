@@ -104,6 +104,11 @@ void Timer(int t) {
 	glutTimerFunc(t, Timer, t);
 }
 
+void Menu(int t)
+{
+	
+}
+
 void init() {
 	MACGrid::initGL("vert.glsl", "frag.glsl");
 	grid = MACGrid::buildMacGrid("test.txt");
@@ -125,6 +130,8 @@ void init() {
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
 	glEnable(GL_LIGHT0);
+	glEnable(GL_ALPHA);
+	glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
 }
 
 int main(int argc, char** argv)
@@ -138,6 +145,9 @@ int main(int argc, char** argv)
 	glutReshapeFunc(Reshape);
 	glutSpecialFunc(Special);
 	glutKeyboardFunc(Keyboard);
+	glutCreateMenu(Menu);
+	glutAddMenuEntry("blah", 1);
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
 	init();
 
 	Timer(16);

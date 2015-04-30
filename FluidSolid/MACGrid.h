@@ -59,6 +59,9 @@ private:
 	static int PARTICLE_DISPLAY_LIST;
 	static GLuint program;
 
+	static bool debug;
+	static bool showGrid;
+
 	float* pressure;
 	float* T;
 	float* u;
@@ -74,8 +77,6 @@ private:
 	float* particlesX;
 	float* particlesY;
 	float* particlesZ;
-
-	bool debug;
 
 	void getdt();
 	void addforce();

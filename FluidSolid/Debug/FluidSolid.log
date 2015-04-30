@@ -1,104 +1,13 @@
 ﻿  MACGrid.cpp
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(16): warning C4305: 'initializing' : truncation from 'double' to 'const float'
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(17): warning C4305: 'initializing' : truncation from 'double' to 'float'
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(343): warning C4244: 'initializing' : conversion from 'int' to 'float', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(343): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(353): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(353): warning C4244: 'initializing' : conversion from 'int' to 'float', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(362): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(362): warning C4244: 'initializing' : conversion from 'int' to 'float', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(363): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(441): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(370) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(444): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(370) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(447): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(370) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(449): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(370) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(450): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(370) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(454): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(370) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(455): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(370) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(459): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(370) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(460): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(370) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(463): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(370) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(464): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(370) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(465): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(370) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(466): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(370) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(469): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(370) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(472): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(370) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(473): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(370) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(476): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(370) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(479): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(370) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(480): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(370) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(483): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(370) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(516): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(500) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(519): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(500) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(521): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(500) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(526): warning C4258: 'i' : definition from the for loop is ignored; the definition from the enclosing scope is used
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(500) : definition of 'i' ignored
-          c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(21) : definition of 'i' used
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(563): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(565): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(568): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(570): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(572): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(575): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(577): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(579): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(582): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(667): warning C4244: '=' : conversion from 'int' to 'float', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(669): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(671): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(687): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(689): warning C4244: '=' : conversion from 'int' to 'float', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(691): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(707): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(709): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(711): warning C4244: '=' : conversion from 'int' to 'float', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(727): warning C4244: '=' : conversion from 'int' to 'float', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(729): warning C4244: '=' : conversion from 'int' to 'float', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(731): warning C4244: '=' : conversion from 'int' to 'float', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(351): warning C4305: '=' : truncation from 'double' to 'float'
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(352): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(610): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(612): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(615): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(617): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(619): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(622): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(624): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(626): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(629): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
   FluidSolid.vcxproj -> C:\Users\Gago\Desktop\HW Projects\CS 5643\Final project\FluidSolid\Debug\FluidSolid.exe

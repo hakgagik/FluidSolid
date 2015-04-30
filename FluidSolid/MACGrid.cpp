@@ -7,15 +7,18 @@
 #include <vector>
 #define _PARSING_
 #endif
+#include <algorithm>
 
 const int MACGrid::neighbors_I[8] = { 1, -1, 0, 0, 0, 0 };
 const int MACGrid::neighbors_J[8] = { 0, 0, 1, -1, 0, 0 };
 const int MACGrid::neighbors_K[8] = { 0, 0, 0, 0, 1, -1 };
-const int MACGrid::pressureProjectionSteps = 100;
-const int MACGrid::particlesPerCell = 32;
+const int MACGrid::pressureProjectionSteps = 50;
+const int MACGrid::particlesPerCell = 2;
 const float MACGrid::g = -9.81f;
-const float MACGrid::particleRadius = 0.06f;
+const float MACGrid::particleRadius = 0.3f;
 float MACGrid::relax = 1.6f;
+bool MACGrid::debug = false;
+bool MACGrid::showGrid = false;
 int MACGrid::PARTICLE_DISPLAY_LIST = -1;
 GLuint MACGrid::program = -1;
 
@@ -315,7 +318,39 @@ void MACGrid::timeStep() {
 }
 
 void MACGrid::getdt() {
-	dt = 0.01f;
+	float maxSpeed = 0;
+	float speed;
+	for (int i = 0; i <= length; i++) {
+		for (int j = 0; j < width; j++) {
+			for (int k = 0; k < height; k++) {
+				ijk = t1DU(i, j, k);
+				speed = abs(u[ijk]);
+				if (speed > maxSpeed) maxSpeed = speed;
+			}
+		}
+	}
+	for (int i = 0; i < length; i++) {
+		for (int j = 0; j <= width; j++) {
+			for (int k = 0; k < height; k++) {
+				ijk = t1DV(i, j, k);
+				speed = abs(v[ijk]);
+				if (speed > maxSpeed) maxSpeed = speed;
+			}
+		}
+	}
+	for (int i = 0; i < length; i++) {
+		for (int j = 0; j < width; j++) {
+			for (int k = 0; k <= height; k++) {
+				ijk = t1DW(i, j, k);
+				speed = abs(w[ijk]);
+				if (speed > maxSpeed) maxSpeed = speed;
+			}
+		}
+	}
+
+	if (maxSpeed <= 0) dt = 0.01;
+	else dt = 0.5 / maxSpeed;
+	dt = std::min(0.2f, dt);
 }
 
 void MACGrid::addforce() {
@@ -378,16 +413,12 @@ void MACGrid::project() {
 		for (int j = 0; j < width; j++) {
 			for (int k = 0; k < height; k++) {
 				if (flags[t1D0(i, j, k)] == 'e') {
+					delDotU[t1D0(i, j, k)] = 0;
+				}
+				else {
 					delDotU[t1D0(i, j, k)] = uB[t1DU(i + 1, j, k)] - uB[t1DU(i, j, k)]
 						+ vB[t1DV(i, j + 1, k)] - vB[t1DV(i, j, k)]
 						+ wB[t1DW(i, j, k + 1)] - wB[t1DW(i, j, k)];
-
-					//delDotU[t1D0(i, j, k)] = getU(i + 0.5, j, k) - getU(i - 0.5, j, k)
-					//	+ getV(i, j + 0.5f, k) - getV(i, j - 0.5f, k)
-					//	+ getW(i, j, k + 0.5f) - getW(i, j, k - 0.5f);
-				}
-				else {
-					delDotU[t1D0(i, j, k)] = 0;
 				}
 			}
 		}
@@ -395,13 +426,17 @@ void MACGrid::project() {
 
 	float laplacian;
 	float neighborCount;
+	float maxDelta;
+	float pOld;
+	//std::cout << "Step" << std::endl;
 	// Calculate pressure by SOR
 	for (int step = 0; step < pressureProjectionSteps; step++) {
+		maxDelta = 0;
 		for (int i = 0; i < length; i++) {
 			for (int j = 0; j < width; j++) {
 				for (int k = 0; k < height; k++) {
 					ijk = t1D0(i, j, k);
-					if (flags[ijk] == 'e') {
+					if (flags[ijk] != 'e') {
 						neighborCount = 0;
 						laplacian = 0;
 						if (i - 1 >= 0) {
@@ -434,7 +469,9 @@ void MACGrid::project() {
 						}
 						laplacian -= delDotU[ijk];
 						laplacian *= relax / neighborCount;
+						pOld = pressure[ijk];
 						pressure[ijk] = (1 - relax) * pressure[ijk] + laplacian;
+						maxDelta = std::max(maxDelta, abs(pressure[ijk] - pOld));
 					}
 					else {
 						pressure[ijk] = 0;
@@ -442,6 +479,8 @@ void MACGrid::project() {
 				}
 			}
 		}
+		//std::cout << maxDelta << std::endl;
+		if (maxDelta < 0.01) break;
 	}
 
 	// Project incompressibility by subtracting u - grad(pressure)
@@ -451,7 +490,7 @@ void MACGrid::project() {
 				if ((i == length) && (j == width) || (j == width && k == height) || (k == height && i == length)) {
 					continue;
 				}
-				else if (i == length) {
+				if (i == length) {
 					// Only do u
 					u[t1DU(i, j, k)] -= pressure[t1D0(i - 1, j, k)];
 					if (u[t1DU(i, j, k)] > 0) u[t1DU(i, j, k)] = 0;
@@ -553,42 +592,45 @@ void MACGrid::display() {
 	}
 	glUseProgram(0);
 
-	
-	for (int i = 0; i < length; i++) {
-		for (int j = 0; j < width; j++) {
-			for (int k = 0; k < height; k++) {
-				if (flags[t1D0(i, j, k)] == 's') {
-					glColor3f(1, 0, 0);
+	if (showGrid) {
+		for (int i = 0; i < length; i++) {
+			for (int j = 0; j < width; j++) {
+				for (int k = 0; k < height; k++) {
+					if (flags[t1D0(i, j, k)] != 'e') {
+						if (flags[t1D0(i, j, k)] == 's') {
+							glColor3f(1, 0, 0);
+						}
+						else if (flags[t1D0(i, j, k)] == 'f') {
+							glColor3f(0, 1, 0);
+						}
+						else {
+							glColor3f(0, 0, 0);
+						}
+						glBegin(GL_LINES);
+						glVertex3f(i, j, k);
+						if (i == length) {
+							glVertex3f(i - 1, j, k);
+						}
+						else {
+							glVertex3f(i + 1, j, k);
+						}
+						glVertex3f(i, j, k);
+						if (j == width) {
+							glVertex3f(i, j - 1, k);
+						}
+						else {
+							glVertex3f(i, j + 1, k);
+						}
+						glVertex3f(i, j, k);
+						if (k == height) {
+							glVertex3f(i, j, k - 1);
+						}
+						else {
+							glVertex3f(i, j, k + 1);
+						}
+						glEnd();
+					}
 				}
-				else if (flags[t1D0(i, j, k)] == 'f') {
-					glColor3f(0, 1, 0);
-				}
-				else {
-					glColor3f(0, 0, 0);
-				}
-				glBegin(GL_LINES);
-				glVertex3f(i, j, k);
-				if (i == length) {
-					glVertex3f(i - 1, j, k);
-				}
-				else {
-					glVertex3f(i + 1, j, k);
-				}
-				glVertex3f(i, j, k);
-				if (j == width) {
-					glVertex3f(i, j - 1, k);
-				}
-				else {
-					glVertex3f(i, j + 1, k);
-				}
-				glVertex3f(i, j, k);
-				if (k == height) {
-					glVertex3f(i, j, k - 1);
-				}
-				else {
-					glVertex3f(i, j, k + 1);
-				}
-				glEnd();
 			}
 		}
 	}
