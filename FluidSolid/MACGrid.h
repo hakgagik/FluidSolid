@@ -9,14 +9,21 @@
 #define _GLUT_
 #endif
 
-
 class MACGrid {
 public:
 	static const float g;
 	static const int particlesPerCell;
 
 	static MACGrid buildMacGrid(std::string inFile);
+	static MACGrid buildVortex(int, int, int, float, float);
 	static void initGL(const char* vertPath, const char* fragPath);
+
+	static bool doProject;
+	static bool doAdvect;
+	static bool showGrid;
+	static bool showVel;
+	static bool showParticles;
+	static bool showPressure;
 
 	int length;
 	int width;
@@ -39,15 +46,14 @@ public:
 	void printV();
 	void printW();
 
-	inline int t1D0(int, int, int);
-	inline int t1DU(int, int, int);
-	inline int t1DV(int, int, int);
-	inline int t1DW(int, int, int);
 	inline float T2nu(float);
 	inline float getU(float, float, float);
 	inline float getV(float, float, float);
 	inline float getW(float, float, float);
-	inline float interpolate(float*, float, float, float);
+	inline float getUB(float, float, float);
+	inline float getVB(float, float, float);
+	inline float getWB(float, float, float);
+	inline float interpolate(float***, float, float, float);
 	
 private:
 	static const float particleRadius;
@@ -59,24 +65,23 @@ private:
 	static int PARTICLE_DISPLAY_LIST;
 	static GLuint program;
 
-	static bool debug;
-	static bool showGrid;
-
-	float* pressure;
-	float* T;
-	float* u;
-	float* v;
-	float* w;
-	float* uB;
-	float* vB;
-	float* wB;
-	float* nu;
-	float* delDotU;
-	char* flags;
+	float*** pressure;
+	float*** T;
+	float*** u;
+	float*** v;
+	float*** w;
+	float*** uB;
+	float*** vB;
+	float*** wB;
+	float*** nu;
+	float*** delDotU;
+	char*** flags;
 
 	float* particlesX;
 	float* particlesY;
 	float* particlesZ;
+
+	float maxSpeed;
 
 	void getdt();
 	void addforce();

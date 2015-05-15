@@ -1,13 +1,37 @@
 ﻿  MACGrid.cpp
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(351): warning C4305: '=' : truncation from 'double' to 'float'
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(352): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(610): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(612): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(615): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(617): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(619): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(622): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(624): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(626): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
-c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(629): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(296): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(305): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(316): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(325): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(442): warning C4305: '=' : truncation from 'double' to 'float'
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(443): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(464): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(464): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(489): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(489): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(514): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(514): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(913): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(914): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(915): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(919): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(920): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(921): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(922): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(927): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(928): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(929): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(930): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(931): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(932): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(933): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(1017): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(1019): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(1022): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(1024): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(1026): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(1029): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(1031): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(1033): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
+c:\users\gago\desktop\hw projects\cs 5643\final project\fluidsolid\fluidsolid\macgrid.cpp(1036): warning C4244: 'argument' : conversion from 'int' to 'GLfloat', possible loss of data
   FluidSolid.vcxproj -> C:\Users\Gago\Desktop\HW Projects\CS 5643\Final project\FluidSolid\Debug\FluidSolid.exe

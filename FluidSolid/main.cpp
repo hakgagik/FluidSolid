@@ -22,6 +22,9 @@ int windowHeight;
 float viewR;
 float viewTheta;
 float viewPhi;
+float viewDispX;
+float viewDispY;
+float viewDispZ;
 float dAngle = 0.1f;
 float dScale = 1.1f;
 
@@ -38,7 +41,11 @@ void Display() {
 	float y = viewR * sin(viewTheta) * sin(viewPhi);
 	float z = viewR * cos(viewTheta);
 
-	gluLookAt(x, y, z, (float)grid.length / 2.0, (float)grid.width / 2.0, (float)grid.height / 2.0, 0, 0, 1);
+	float upX = -cos(viewPhi) * cos(viewTheta);
+	float upY = -sin(viewPhi) * cos(viewTheta);
+	float upZ = sin(viewTheta);
+
+	gluLookAt(x+viewDispX, y + viewDispZ, z + viewDispZ, (float)grid.length / 2.0 + viewDispX, (float)grid.width / 2.0 + viewDispY, (float)grid.height / 2.0 + viewDispZ, upX, upY, upZ);
 
 	grid.display();
 
@@ -78,29 +85,76 @@ void Keyboard(unsigned char key, int, int) {
 	switch (key) {
 	case '=':
 		viewR /= dScale;
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		gluPerspective(5, (float)windowWidth / (float)windowHeight, 0.01, viewR * 2);
+		glMatrixMode(GL_MODELVIEW);
 		break;
 	case '-':
 		viewR *= dScale;
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		gluPerspective(5, (float)windowWidth / (float)windowHeight, 0.01, viewR * 2);
+		glMatrixMode(GL_MODELVIEW);
+		break;
+	case 'w':
+		viewDispX += -cos(viewPhi) * cos(viewTheta) * viewR / 1000;
+		viewDispY += -sin(viewPhi) * cos(viewTheta) * viewR / 1000;
+		viewDispZ += sin(viewTheta) * viewR / 1000;
+		break;
+	case 's':
+		viewDispX -= -cos(viewPhi) * cos(viewTheta) * viewR / 1000;
+		viewDispY -= -sin(viewPhi) * cos(viewTheta) * viewR / 1000;
+		viewDispZ -= sin(viewTheta) * viewR / 1000;
+		break;
+	case 'a':
+		viewDispX -= -sin(viewPhi) * viewR / 1000;
+		viewDispY -= cos(viewPhi) * viewR / 1000;
+		break;
+	case 'd':
+		viewDispX += -sin(viewPhi) * viewR / 1000;
+		viewDispY += cos(viewPhi) * viewR / 1000;
 		break;
 	case ' ':
 		simulate = !simulate;
 		break;
-	case 's':
+	case 'e':
 		Simulate();
 		glutPostRedisplay();
+		break;
+	case 'g':
+		MACGrid::showGrid = !MACGrid::showGrid;
+		break;
+	case 'v':
+		MACGrid::showVel = !MACGrid::showVel;
+		break;
+	case 'p':
+		MACGrid::showParticles = !MACGrid::showParticles;
+		break;
+	case 'z':
+		MACGrid::doAdvect = !MACGrid::doAdvect;
+		break;
+	case 'x':
+		MACGrid::doProject = !MACGrid::doProject;
+		break;
+	case 'c':
+		MACGrid::showPressure = !MACGrid::showPressure;
+		break;
 	}
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(5, (float)windowWidth / (float)windowHeight, 0.01, viewR * 2);
-	glMatrixMode(GL_MODELVIEW);
 }
+
+long t1 = 0;
 
 void Timer(int t) {
 	if (simulate) {
 		Simulate();
 	}
 	glutPostRedisplay();
+	//long t2 = glutGet(GLUT_ELAPSED_TIME);
+	//if (t2 >= t1) {
+	//	t1 += 500;
+	//	std::cout << t2 << std::endl;
+	//}
 	glutTimerFunc(t, Timer, t);
 }
 
@@ -112,10 +166,14 @@ void Menu(int t)
 void init() {
 	MACGrid::initGL("vert.glsl", "frag.glsl");
 	grid = MACGrid::buildMacGrid("test.txt");
+	//grid = MACGrid::buildVortex(40, 40, 40, 15, 2);
 	//grid.printFlags();
 	viewR = sqrt(grid.length * grid.length + grid.width + grid.width + grid.height * grid.height) * 20;
 	viewTheta = (float)acos(1.0 / sqrt(3));
 	viewPhi = -45.0 / 180.0 * PI;
+	viewDispX = 0;
+	viewDispY = 0;
+	viewDispZ = 0;
 
 	float lightPos[] = { (float)grid.length / 2.0f, (float)grid.width / 2.0f, (float)grid.height / 2.0f, 1.0f };
 	float lightAmbient[] = { 0.5f, 0.5f, 0.5f, 1.0f };

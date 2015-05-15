@@ -1,28 +1,34 @@
 #include "MACGrid.h"
-
-#ifndef _PARSING_
 #include <fstream>
 #include <string>
 #include <sstream>
-#include <vector>
-#define _PARSING_
-#endif
 #include <algorithm>
+
+#include "Program.h"
+
+#ifndef _GLUT_
+#include "Dependencies\glew\glew.h"
+#include "Dependencies\freeglut\freeglut.h"
+#define _GLUT_
+#endif
 
 const int MACGrid::neighbors_I[8] = { 1, -1, 0, 0, 0, 0 };
 const int MACGrid::neighbors_J[8] = { 0, 0, 1, -1, 0, 0 };
 const int MACGrid::neighbors_K[8] = { 0, 0, 0, 0, 1, -1 };
-const int MACGrid::pressureProjectionSteps = 50;
+const int MACGrid::pressureProjectionSteps = 1000;
 const int MACGrid::particlesPerCell = 2;
 const float MACGrid::g = -9.81f;
 const float MACGrid::particleRadius = 0.3f;
 float MACGrid::relax = 1.6f;
-bool MACGrid::debug = false;
+bool MACGrid::doProject = true;
+bool MACGrid::doAdvect = true;
 bool MACGrid::showGrid = false;
+bool MACGrid::showVel = false;
+bool MACGrid::showParticles = true;
+bool MACGrid::showPressure = false;
 int MACGrid::PARTICLE_DISPLAY_LIST = -1;
 GLuint MACGrid::program = -1;
 
-int ijk;
 float deltaX, deltaY, deltaZ;
 float dx, dy, dz;
 
@@ -36,63 +42,94 @@ MACGrid::MACGrid(int length, int width, int height) {
 	numElements = height * elemsPerPlane;
 
 	//Inintialize all the arrays
-	pressure = new float[length * width * height];
-	flags = new char[length * width * height];
-	T = new float[length * width * height];
-	u = new float[(length + 1) * width * height];
-	v = new float[length * (width + 1) * height];
-	w = new float[length * width * (height + 1)];
-	uB = new float[(length + 1) * width * height];
-	vB = new float[length * (width + 1) * height];
-	wB = new float[length * width * (height + 1)];
-	nu = new float[length * width * height];
-	delDotU = new float[length * width * height];
+	pressure = new float**[length];
+	flags = new char**[length];
+	T = new float**[length];
+	nu = new float**[length];
+	delDotU = new float**[length];
+	for (int i = 0; i < length; i++) {
+		pressure[i] = new float*[width];
+		flags[i] = new char*[width];
+		T[i] = new float*[width];
+		nu[i] = new float*[width];
+		delDotU[i] = new float*[height];
+		for (int j = 0; j < width; j++) {
+			pressure[i][j] = new float[height];
+			flags[i][j] = new char[height];
+			T[i][j] = new float[height];
+			nu[i][j] = new float[height];
+			delDotU[i][j] = new float[height];
+		}
+	}
+
+	u = new float**[length + 1];
+	uB = new float**[length + 1];
+	for (int i = 0; i <= length; i++) {
+		u[i] = new float*[width];
+		uB[i] = new float*[width];
+		for (int j = 0; j < width; j++) {
+			u[i][j] = new float[height];
+			uB[i][j] = new float[height];
+		}
+	}	
+	v = new float**[length];
+	vB = new float**[length];
+	for (int i = 0; i < length; i++) {
+		v[i] = new float*[width + 1];
+		vB[i] = new float*[width + 1];
+		for (int j = 0; j <= width; j++) {
+			v[i][j] = new float[height];
+			vB[i][j] = new float[height];
+		}
+	}
+	w = new float**[length];
+	wB = new float**[length];
+	for (int i = 0; i < length; i++) {
+		w[i] = new float*[width];
+		wB[i] = new float*[width];
+		for (int j = 0; j < width; j++) {
+			w[i][j] = new float[height + 1];
+			wB[i][j] = new float[height + 1];
+		}
+	}
 	t = 0;
 
 	//Set everything to 0
 	for (int i = 0; i < length; i++) {
 		for (int j = 0; j < width; j++) {
 			for (int k = 0; k < height; k++) {
-				ijk = t1D0(i, j, k);
-				pressure[ijk] = 0;
-				T[ijk] = 293;
-				nu[ijk] = T2nu(293);
-				delDotU[ijk] = 0;
+				pressure[i][j][k] = 0;
+				T[i][j][k] = 293;
+				nu[i][j][k] = T2nu(293);
+				delDotU[i][j][k] = 0;
 			}
 		}
 	}
 	for (int i = 0; i <= length; i++) {
 		for (int j = 0; j <= width; j++) {
 			for (int k = 0; k <= height; k++) {
-				int ijk;
 				if (i == length && j == width || j == width && k == height || k == height && i == length) {
 					continue;
 				}
-				else if (i == length) {
-					ijk = t1DU(i, j, k);
-					u[ijk] = 0;
-					uB[ijk] = 0;
+				if (i == length) {
+					u[i][j][k] = 0;
+					uB[i][j][k] = 0;
 				}
 				else if (j == length) {
-					ijk = t1DV(i, j, k);
-					v[ijk] = 0;
-					vB[ijk] = 0;
+					v[i][j][k] = 0;
+					vB[i][j][k] = 0;
 				}
 				else if (k == height) {
-					ijk = t1DW(i, j, k);
-					w[ijk] = 0;
-					wB[ijk] = 0;
+					w[i][j][k] = 0;
+					wB[i][j][k] = 0;
 				}
 				else {
-					ijk = t1DU(i, j, k);
-					u[ijk] = 0;
-					uB[ijk] = 0;
-					ijk = t1DV(i, j, k);
-					v[ijk] = 0;
-					vB[ijk] = 0;
-					ijk = t1DW(i, j, k);
-					w[ijk] = 0;
-					wB[ijk] = 0;
+					u[i][j][k] = 0;
+					uB[i][j][k] = 0;
+					v[i][j][k] = 0;
+					vB[i][j][k] = 0;
+					w[i][j][k] = 0;
+					wB[i][j][k] = 0;
 				}
 			}
 		}
@@ -116,7 +153,7 @@ MACGrid::MACGrid(int length, int width, int height) {
 //	delete[] particlesZ;
 //}
 
-// Brings a MAC grid given an input file. The first line of the file should specify the number of cells in each direction.
+// Builds a MAC grid given an input file. The first line of the file should specify the number of cells in each direction.
 // Each subsequent line should be a triple of ints that specify which cells start with fluid in them.
 MACGrid MACGrid::buildMacGrid(std::string infile) {
 	using namespace std;
@@ -146,7 +183,7 @@ MACGrid MACGrid::buildMacGrid(std::string infile) {
 	for (int i = 0; i < length; i++) {
 		for (int j = 0; j < width; j++) {
 			for (int k = 0; k < height; k++) {
-				grid.flags[grid.t1D0(i, j, k)] = 'e';
+				grid.flags[i][j][k] = 'e';
 			}
 		}
 	}
@@ -161,10 +198,10 @@ MACGrid MACGrid::buildMacGrid(std::string infile) {
 		y = stoi(buffer);
 		ss >> buffer;
 		z = stoi(buffer);
-		grid.flags[grid.t1D0(x, y, z)] = 'f';
-		grid.pressure[grid.t1D0(x, y, z)] = pressure;
-		grid.T[grid.t1D0(x, y, z)] = T;
-		grid.nu[grid.t1D0(x, y, z)] = grid.T2nu(T);
+		grid.flags[x][y][z] = 'f';
+		grid.pressure[x][y][z] = pressure;
+		grid.T[x][y][z] = T;
+		grid.nu[x][y][z] = grid.T2nu(T);
 		numFluidCells++;
 	}
 
@@ -176,14 +213,14 @@ MACGrid MACGrid::buildMacGrid(std::string infile) {
 	for (int i = 0; i < length; i++) {
 		for (int j = 0; j < width; j++) {
 			for (int k = 0; k < height; k++) {
-				if (grid.flags[grid.t1D0(i, j, k)] == 'e') {
+				if (grid.flags[i][j][k] == 'e') {
 					for (int n = 0; n < 8; n++) {
 						X = i + neighbors_I[n];
 						Y = j + neighbors_J[n];
 						Z = k + neighbors_K[n];
 						if (X >= 0 && Y >= 0 && Z >= 0 && X < length && Y < width && Z < height) {
-							if (grid.flags[grid.t1D0(X, Y, Z)] == 'f') {
-								grid.flags[grid.t1D0(i, j, k)] = 's';
+							if (grid.flags[X][Y][Z] == 'f') {
+								grid.flags[i][j][k] = 's';
 								break;
 							}
 						}
@@ -202,12 +239,11 @@ MACGrid MACGrid::buildMacGrid(std::string infile) {
 	for (int i = 0; i < grid.length; i++) {
 		for (int j = 0; j < grid.width; j++) {
 			for (int k = 0; k < grid.height; k++) {
-				int ijk = grid.t1D0(i, j, k);
-				if (grid.flags[ijk] == 'f') {
+				if (grid.flags[i][j][k] == 'f') {
 					for (int p = 0; p < particlesPerCell; p++) {
-						grid.particlesX[count] = (float)i + (float)rand() / static_cast<float>(RAND_MAX);
-						grid.particlesY[count] = (float)j + (float)rand() / static_cast<float>(RAND_MAX);
-						grid.particlesZ[count] = (float)k + (float)rand() / static_cast<float>(RAND_MAX);
+						grid.particlesX[count] = float(i) + float(rand()) / static_cast<float>(RAND_MAX);
+						grid.particlesY[count] = float(j) + float(rand()) / static_cast<float>(RAND_MAX);
+						grid.particlesZ[count] = float(k) + float(rand()) / static_cast<float>(RAND_MAX);
 						grid.particlesX[i] = (grid.particlesX[i] > 0 ? grid.particlesX[i] : 0) < length ? grid.particlesX[i] : length - 0.0001f;
 						grid.particlesY[i] = (grid.particlesY[i] > 0 ? grid.particlesY[i] : 0) < width ? grid.particlesY[i] : width - 0.0001f;
 						grid.particlesZ[i] = (grid.particlesZ[i] > 0 ? grid.particlesZ[i] : 0) < height ? grid.particlesZ[i] : height - 0.0001f;
@@ -221,84 +257,117 @@ MACGrid MACGrid::buildMacGrid(std::string infile) {
 	return grid;
 }
 
-std::string readShaderFile(const char *filePath) {
-	using namespace std;
-	string content;
-	ifstream fileStream(filePath, ios::in);
+MACGrid MACGrid::buildVortex(int length, int width, int height, float r, float gamma) {
+	MACGrid grid(length, width, height);
+	for (int i = 0; i < length; i++) {
+		for (int j = 0; j < width; j++) {
+			for (int k = 0; k < height; k++) {
+				if (k < 3) grid.flags[i][j][k] = 'f';
+				else grid.flags[i][j][k] = 'e';
+			}
+		}
+	}
+	grid.numParticles = length * width * height * particlesPerCell;
 
-	if (!fileStream.is_open()) {
-		cerr << "Could not read file " << filePath << ". File does not exist." << endl;
-		return "";
+	int X, Y, Z;
+	for (int i = 0; i < length; i++) {
+		for (int j = 0; j < width; j++) {
+			for (int k = 0; k < height; k++) {
+				if (grid.flags[i][j][k] == 'e') {
+					for (int n = 0; n < 8; n++) {
+						X = i + neighbors_I[n];
+						Y = j + neighbors_J[n];
+						Z = k + neighbors_K[n];
+						if (X >= 0 && Y >= 0 && Z >= 0 && X < length && Y < width && Z < height) {
+							if (grid.flags[X][Y][Z] == 'f') {
+								grid.flags[i][j][k] = 's';
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
 	}
-	string line = "";
-	while (!fileStream.eof()) {
-		getline(fileStream, line);
-		content.append(line + "\n");
+	for (int i = 0; i <= length; i++) {
+		for (int j = 0; j < width; j++) {
+			for (int k = 0; k < height; k++) {
+				float x = i - float(length) / 2.0f;
+				float y = j + 0.5 - float(width) / 2.0f;
+				if (sqrt(x*x + y*y) < r) grid.u[i][j][k] = -y * gamma;
+			}
+		}
 	}
-	fileStream.close();
-	return content;
+	
+	for (int i = 0; i < length; i++) {
+		for (int j = 0; j <= width; j++) {
+			for (int k = 0; k < height; k++) {
+				float x = i + 0.5 - float(length) / 2.0f + r / 12.0;
+				float y = j - float(width) / 2.0f + r / 12.0;
+				if (sqrt(x*x + y*y) < r) grid.v[i][j][k] = x * gamma;
+			}
+		}
+	}
+
+	for (int i = 0; i <= length; i++) {
+		for (int j = 0; j < width; j++) {
+			for (int k = 0; k < height; k++) {
+				float x = i - float(length) / 2.0f - r / 12.0f;
+				float y = j + 0.5 - float(width) / 2.0 - r / 12.0f;
+				if (sqrt(x*x + y*y) < r) grid.u[i][j][k] += -y * gamma;
+			}
+		}
+	}
+
+	for (int i = 0; i < length; i++) {
+		for (int j = 0; j <= width; j++) {
+			for (int k = 0; k < height; k++) {
+				float x = i + 0.5 - float(length) / 2.0f - r / 12.0f;
+				float y = j - float(width) / 2.0f - r / 12.0f;
+				if (sqrt(x*x + y*y) < r) grid.v[i][j][k] += x * gamma;
+			}
+		}
+	}
+
+
+	grid.particlesX = new float[grid.numParticles];
+	grid.particlesY = new float[grid.numParticles];
+	grid.particlesZ = new float[grid.numParticles];
+
+	int count = 0;
+
+	for (int i = 0; i < grid.length; i++) {
+		for (int j = 0; j < grid.width; j++) {
+			for (int k = 0; k < grid.height; k++) {
+				if (grid.flags[i][j][k] == 'f') {
+					for (int p = 0; p < particlesPerCell; p++) {
+						grid.particlesX[count] = float(i) + float(rand()) / static_cast<float>(RAND_MAX);
+						grid.particlesY[count] = float(j) + float(rand()) / static_cast<float>(RAND_MAX);
+						grid.particlesZ[count] = float(k) + float(rand()) / static_cast<float>(RAND_MAX);
+						grid.particlesX[i] = (grid.particlesX[i] > 0 ? grid.particlesX[i] : 0) < length ? grid.particlesX[i] : length - 0.0001f;
+						grid.particlesY[i] = (grid.particlesY[i] > 0 ? grid.particlesY[i] : 0) < width ? grid.particlesY[i] : width - 0.0001f;
+						grid.particlesZ[i] = (grid.particlesZ[i] > 0 ? grid.particlesZ[i] : 0) < height ? grid.particlesZ[i] : height - 0.0001f;
+						count++;
+					}
+				}
+			}
+		}
+	}
+	//grid.printFlags();
+	return grid;
 }
 
 // Initialize GL things for drawing the MACGrid (I.e. shaders and display lists)
 void MACGrid::initGL(const char* vertPath, const char* fragPath) {
 	using namespace std;
 
-	GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
-	GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-	// Read shader
-	string vertShaderStr = readShaderFile(vertPath);
-	string fragShaderStr = readShaderFile(fragPath);
-	const char* vertShaderSrc = vertShaderStr.c_str();
-	const char* fragShaderSrc = fragShaderStr.c_str();
-
-	GLint result = GL_FALSE;
-	int logLength;
-
-	// Compile vertex shader
-	cout << "Compiling vertex shader." << endl;
-	glShaderSource(vertShader, 1, &vertShaderSrc, NULL);
-	glCompileShader(vertShader);
-
-	// Check vertex shader
-	glGetShaderiv(vertShader, GL_COMPILE_STATUS, &result);
-	glGetShaderiv(vertShader, GL_INFO_LOG_LENGTH, &logLength);
-	vector<char> vertShaderError((logLength > 1) ? logLength : 1);
-	glGetShaderInfoLog(vertShader, logLength, NULL, &vertShaderError[0]);
-	cout << &vertShaderError[0] << std::endl;
-
-	// Compile fragment shader
-	cout << "Compiling fragment shader" << endl;
-	glShaderSource(fragShader, 1, &fragShaderSrc, NULL);
-	glCompileShader(fragShader);
-
-	// Check fragment shader
-	glGetShaderiv(fragShader, GL_COMPILE_STATUS, &result);
-	glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, &logLength);
-	vector<char> fragShaderError((logLength > 1) ? logLength : 1);
-	glGetShaderInfoLog(fragShader, logLength, NULL, &fragShaderError[0]);
-	std::cout << &fragShaderError[0] << std::endl;
-
-	cout << "Linking program" << endl;
-	program = glCreateProgram();
-	glAttachShader(program, vertShader);
-	glAttachShader(program, fragShader);
-	glLinkProgram(program);
-
-	glGetProgramiv(program, GL_LINK_STATUS, &result);
-	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
-	vector<char> programError((logLength > 1) ? logLength : 1);
-	glGetProgramInfoLog(program, logLength, NULL, &programError[0]);
-	cout << &programError[0] << std::endl;
-
-	glDeleteShader(vertShader);
-	glDeleteShader(fragShader);
+	program = Program::createProgram(vertPath, fragPath, "Lambertian");
 
 	if (PARTICLE_DISPLAY_LIST < 0) {
 		int displayListIndex = glGenLists(1);
 		GLUquadric* quadric = gluNewQuadric();
 		glNewList(displayListIndex, GL_COMPILE);
-		gluSphere(quadric, particleRadius, 16, 8);
+		gluSphere(quadric, particleRadius, 8, 4);
 		glEndList();
 		gluDeleteQuadric(quadric);
 		cout << "MADE DISPLAY LIST " << displayListIndex << " : " << glIsList(displayListIndex) << endl;
@@ -312,19 +381,27 @@ void MACGrid::timeStep() {
 	getdt();
 	addforce();
 	advect();
-	//diffuse();
+	diffuse();
 	project();
 	advectEverythingElse();
 }
 
 void MACGrid::getdt() {
-	float maxSpeed = 0;
+	maxSpeed = 0;
 	float speed;
+	bool e0, e1;
 	for (int i = 0; i <= length; i++) {
 		for (int j = 0; j < width; j++) {
 			for (int k = 0; k < height; k++) {
-				ijk = t1DU(i, j, k);
-				speed = abs(u[ijk]);
+				e0 = e1 = true;
+				if (i > 0) {
+					if (flags[i - 1][j][k] != 'e') e0 = false;
+				}
+				if (i < length) {
+					if (flags[i][j][k] != 'e') e1 = false;
+				}
+				if (e0 && e1) continue;
+				speed = abs(u[i][j][k]);
 				if (speed > maxSpeed) maxSpeed = speed;
 			}
 		}
@@ -332,8 +409,15 @@ void MACGrid::getdt() {
 	for (int i = 0; i < length; i++) {
 		for (int j = 0; j <= width; j++) {
 			for (int k = 0; k < height; k++) {
-				ijk = t1DV(i, j, k);
-				speed = abs(v[ijk]);
+				e0 = e1 = true;
+				if (j > 0) {
+					if (flags[i][j - 1][k] != 'e') e0 = false;
+				}
+				if (j < width) {
+					if (flags[i][j][k] != 'e') e1 = false;
+				}
+				if (e0 && e1) continue;
+				speed = abs(v[i][j][k]);
 				if (speed > maxSpeed) maxSpeed = speed;
 			}
 		}
@@ -341,8 +425,15 @@ void MACGrid::getdt() {
 	for (int i = 0; i < length; i++) {
 		for (int j = 0; j < width; j++) {
 			for (int k = 0; k <= height; k++) {
-				ijk = t1DW(i, j, k);
-				speed = abs(w[ijk]);
+				e0 = e1 = true;
+				if (k > 0) {
+					if (flags[i][j][k - 1] != 'e') e0 = false;
+				}
+				if (k < height) {
+					if (flags[i][j][k] != 'e') e1 = false;
+				}
+				if (e0 && e1) continue;
+				speed = abs(w[i][j][k]);
 				if (speed > maxSpeed) maxSpeed = speed;
 			}
 		}
@@ -350,19 +441,85 @@ void MACGrid::getdt() {
 
 	if (maxSpeed <= 0) dt = 0.01;
 	else dt = 0.5 / maxSpeed;
-	dt = std::min(0.2f, dt);
+	dt = std::min(0.01f, dt);
+	t += dt;
+	std::cout << "time: " << t << " dt: " << dt << " ";
 }
 
 void MACGrid::addforce() {
-	float dv = dt * MACGrid::g;
+	float dv = dt * g * height;
+	bool e0, e1;
+	for (int i = 0; i <= length; i++) {
+		for (int j = 0; j < width; j++) {
+			for (int k = 0; k < height; k++) {
+				// TODO: add other forces as necessary
+				e0 = e1 = true;
+				if (i > 0) {
+					if (flags[i - 1][j][k] != 'e') e0 = false;
+				}
+				if (i < length) {
+					if (flags[i][j][k] != 'e') e1 = false;
+				}
+				if (e0 && e1) {
+					uB[i][j][k] = getU(i, j + 0.5, k + 0.5);
+					continue;
+				}
+				uB[i][j][k] = u[i][j][k];
+				if (i == 0) {
+					uB[i][j][k] = uB[i][j][k] > 0 ? uB[i][j][k] : 0;
+				}
+				if (i == length) {
+					uB[i][j][k] = uB[i][j][k] > 0 ? 0 : uB[i][j][k];
+				}
+			}
+		}
+	}
+	for (int i = 0; i < length; i++) {
+		for (int j = 0; j <= width; j++) {
+			for (int k = 0; k < height; k++) {
+				// TODO: add other forces as necessary
+				e0 = e1 = true;
+				if (j > 0) {
+					if (flags[i][j - 1][k] != 'e') e0 = false;
+				}
+				if (j < width) {
+					if (flags[i][j][k] != 'e') e1 = false;
+				}
+				if (e0 && e1) {
+					vB[i][j][k] = getV(i+0.5, j, k+0.5);
+					continue;
+				}
+				vB[i][j][k] = v[i][j][k];
+				if (j == 0) {
+					vB[i][j][k] = vB[i][j][k] > 0 ? vB[i][j][k] : 0;
+				}
+				if (j == width) {
+					vB[i][j][k] = vB[i][j][k] > 0 ? 0 : vB[i][j][k];
+				}
+			}
+		}
+	}
 	for (int i = 0; i < length; i++) {
 		for (int j = 0; j < width; j++) {
 			for (int k = 0; k <= height; k++) {
 				// TODO: add other forces as necessary
-				ijk = t1DW(i, j, k);
-				w[ijk] += dv;
+				e0 = e1 = true;
+				if (k > 0) {
+					if (flags[i][j][k - 1] != 'e') e0 = false;
+				}
+				if (k < height) {
+					if (flags[i][j][k] != 'e') e1 = false;
+				}
+				if (e0 && e1) {
+					wB[i][j][k] = getW(i + 0.5, j + 0.5, k);
+					continue;
+				}
+				wB[i][j][k] = w[i][j][k] + dv;
 				if (k == 0) {
-					w[ijk] = (w[ijk] > 0) ? w[ijk] : 0;
+					wB[i][j][k] = wB[i][j][k] > 0 ? wB[i][j][k] : 0;
+				}
+				if (k == height) {
+					wB[i][j][k] = wB[i][j][k] > 0 ? 0 : wB[i][j][k];
 				}
 			}
 		}
@@ -370,15 +527,106 @@ void MACGrid::addforce() {
 }
 
 void MACGrid::advect() {
-	float x, y, z;
-	// u
+	if (doAdvect) {
+		float x, y, z;
+		// u
+		for (int i = 0; i <= length; i++) {
+			for (int j = 0; j < width; j++) {
+				for (int k = 0; k < height; k++) {
+					x = float(i);
+					y = j + 0.5f;
+					z = k + 0.5f;
+					u[i][j][k] = getUB(x - uB[i][j][k] * dt, y - getVB(x, y, z) * dt, z - getWB(x, y, z) * dt);
+				}
+			}
+		}
+
+		// v
+		for (int i = 0; i < length; i++) {
+			for (int j = 0; j <= width; j++) {
+				for (int k = 0; k < height; k++) {
+					x = i + 0.5f;
+					y = float(j);
+					z = k + 0.5f;
+					v[i][j][k] = getVB(x - getUB(x, y, z) * dt, y - vB[i][j][k] * dt, z - getWB(x, y, z) * dt);
+				}
+			}
+		}
+
+		// w
+		for (int i = 0; i < length; i++) {
+			for (int j = 0; j < width; j++) {
+				for (int k = 0; k < height; k++) {
+					x = i + 0.5f;
+					y = j + 0.5f;
+					z = float(k);
+					w[i][j][k] = getWB(x - getUB(x, y, z) * dt, y - getVB(x, y, z) * dt, z - wB[i][j][k] * dt);
+				}
+			}
+		}
+	} else {
+		for (int i = 0; i <= length; i++) {
+			for (int j = 0; j < width; j++) {
+				for (int k = 0; k < height; k++) {
+					u[i][j][k] = uB[i][j][k];
+				}
+			}
+		}
+
+		// v
+		for (int i = 0; i < length; i++) {
+			for (int j = 0; j <= width; j++) {
+				for (int k = 0; k < height; k++) {
+					v[i][j][k] = vB[i][j][k];
+				}
+			}
+		}
+
+		// w
+		for (int i = 0; i < length; i++) {
+			for (int j = 0; j < width; j++) {
+				for (int k = 0; k < height; k++) {
+					w[i][j][k] = wB[i][j][k];
+				}
+			}
+		}
+	}
+}
+
+void MACGrid::diffuse() {
+	float n = 0;
 	for (int i = 0; i <= length; i++) {
 		for (int j = 0; j < width; j++) {
 			for (int k = 0; k < height; k++) {
-				x = (float)i;
-				y = j + 0.5f;
-				z = k + 0.5f;
-				uB[t1DU(i, j, k)] = getU(x - u[t1DU(i, j, k)] * dt, y - getV(x, y, z) * dt, z - getW(x, y, z) * dt);
+				float count = 0;
+				float accum = 0;
+				if (i > 0) {
+					count++;
+					accum += u[i - 1][j][k];
+				}
+				if (i < length) {
+					count++;
+					accum += u[i + 1][j][k];
+				}
+				if (j > 0) {
+					count++;
+					accum += u[i][j - 1][k];
+				}
+				if (j < width - 1) {
+					count++;
+					accum += u[i][j + 1][k];
+				}
+				if (k > 0) {
+					count++;
+					accum += u[i][j][k - 1];
+				}
+				if (k < height -1 ) {
+					count++;
+					accum += u[i][j][k + 1];
+				}
+				accum -= count * u[i][j][k];
+				accum *= n * dt;
+				uB[i][j][k] = uB[i][j][k] + accum;
 			}
 		}
 	}
@@ -387,10 +635,35 @@ void MACGrid::advect() {
 	for (int i = 0; i < length; i++) {
 		for (int j = 0; j <= width; j++) {
 			for (int k = 0; k < height; k++) {
-				x = i + 0.5f;
-				y = (float)j;
-				z = k + 0.5f;
-				vB[t1DV(i, j, k)] = getV(x - getU(x, y, z) * dt, y - v[t1DV(i, j, k)] * dt, z - getW(x, y, z) * dt);
+				float count = 0;
+				float accum = 0;
+				if (i > 0) {
+					count++;
+					accum += v[i - 1][j][k];
+				}
+				if (i < length - 1) {
+					count++;
+					accum += v[i + 1][j][k];
+				}
+				if (j > 0) {
+					count++;
+					accum += v[i][j - 1][k];
+				}
+				if (j < width) {
+					count++;
+					accum += v[i][j + 1][k];
+				}
+				if (k > 0) {
+					count++;
+					accum += v[i][j][k - 1];
+				}
+				if (k < height - 1) {
+					count++;
+					accum += v[i][j][k + 1];
+				}
+				accum -= count * v[i][j][k];
+				accum *= n * dt;
+				vB[i][j][k] = v[i][j][k] + accum;
 			}
 		}
 	}
@@ -399,134 +672,186 @@ void MACGrid::advect() {
 	for (int i = 0; i < length; i++) {
 		for (int j = 0; j < width; j++) {
 			for (int k = 0; k < height; k++) {
-				x = i + 0.5f;
-				y = j + 0.5f;
-				z = (float)k;
-				wB[t1DW(i, j, k)] = getW(x - getU(x, y, z) * dt, y - getV(x, y, z) * dt, z - w[t1DW(i, j, k)] * dt);
+				float count = 0;
+				float accum = 0;
+				if (i > 0) {
+					count++;
+					accum += w[i - 1][j][k];
+				}
+				if (i < length - 1) {
+					count++;
+					accum += w[i + 1][j][k];
+				}
+				if (j > 0) {
+					count++;
+					accum += w[i][j - 1][k];
+				}
+				if (j < width - 1) {
+					count++;
+					accum += w[i][j + 1][k];
+				}
+				if (k > 0) {
+					count++;
+					accum += w[i][j][k - 1];
+				}
+				if (k < height) {
+					count++;
+					accum += w[i][j][k + 1];
+				}
+				accum -= count * w[i][j][k];
+				accum *= n * dt;
+				wB[i][j][k] = w[i][j][k] + accum;
 			}
 		}
 	}
-}
+	for (int i = 0; i <= length; i++) {
+		for (int j = 0; j < width; j++) {
+			for (int k = 0; k < height; k++) {
+				u[i][j][k] = uB[i][j][k];
+			}
+		}
+	}
 
-void MACGrid::project() {
+	// v
+	for (int i = 0; i < length; i++) {
+		for (int j = 0; j <= width; j++) {
+			for (int k = 0; k < height; k++) {
+				v[i][j][k] = vB[i][j][k];
+			}
+		}
+	}
+
+	// w
 	for (int i = 0; i < length; i++) {
 		for (int j = 0; j < width; j++) {
 			for (int k = 0; k < height; k++) {
-				if (flags[t1D0(i, j, k)] == 'e') {
-					delDotU[t1D0(i, j, k)] = 0;
-				}
-				else {
-					delDotU[t1D0(i, j, k)] = uB[t1DU(i + 1, j, k)] - uB[t1DU(i, j, k)]
-						+ vB[t1DV(i, j + 1, k)] - vB[t1DV(i, j, k)]
-						+ wB[t1DW(i, j, k + 1)] - wB[t1DW(i, j, k)];
-				}
+				w[i][j][k] = wB[i][j][k];
 			}
 		}
 	}
 
-	float laplacian;
-	float neighborCount;
-	float maxDelta;
-	float pOld;
-	//std::cout << "Step" << std::endl;
-	// Calculate pressure by SOR
-	for (int step = 0; step < pressureProjectionSteps; step++) {
-		maxDelta = 0;
+}
+
+void MACGrid::project() {
+	if (doProject) {
 		for (int i = 0; i < length; i++) {
 			for (int j = 0; j < width; j++) {
 				for (int k = 0; k < height; k++) {
-					ijk = t1D0(i, j, k);
-					if (flags[ijk] != 'e') {
-						neighborCount = 0;
-						laplacian = 0;
-						if (i - 1 >= 0) {
-							neighborCount++;
-							laplacian += pressure[ijk - 1];
-						}
-						if (i + 1 < length) {
-							neighborCount++;
-							laplacian += pressure[ijk + 1];
-						}
-						if (j - 1 >= 0) {
-							neighborCount++;
-							laplacian += pressure[ijk - length];
-						}
-						if (j + 1 < width) {
-							neighborCount++;
-							laplacian += pressure[ijk + length];
-						}
-						if (k - 1 >= 0) {
-							neighborCount++;
-							laplacian += pressure[ijk - elemsPerPlane];
-						}
-						if (k + 1 < height) {
-							neighborCount++;
-							laplacian += pressure[ijk + elemsPerPlane];
-						}
-						if (neighborCount == 0) {
-							pressure[ijk] = 0;
-							continue;
-						}
-						laplacian -= delDotU[ijk];
-						laplacian *= relax / neighborCount;
-						pOld = pressure[ijk];
-						pressure[ijk] = (1 - relax) * pressure[ijk] + laplacian;
-						maxDelta = std::max(maxDelta, abs(pressure[ijk] - pOld));
+					if (flags[i][j][k] == 'e') {
+						delDotU[i][j][k] = 0;
 					}
 					else {
-						pressure[ijk] = 0;
+						delDotU[i][j][k] = u[i + 1][j][k] - u[i][j][k]
+							+ v[i][j + 1][k] - v[i][j][k]
+							+ w[i][j][k + 1] - w[i][j][k];
 					}
 				}
 			}
 		}
-		//std::cout << maxDelta << std::endl;
-		if (maxDelta < 0.01) break;
-	}
 
-	// Project incompressibility by subtracting u - grad(pressure)
-	for (int i = 0; i <= length; i++) {
-		for (int j = 0; j <= width; j++) {
-			for (int k = 0; k <= height; k++) {
-				if ((i == length) && (j == width) || (j == width && k == height) || (k == height && i == length)) {
-					continue;
+		float laplacian;
+		float neighborCount;
+		float maxDelta;
+		float pOld;
+
+		// Calculate pressure by SOR
+		int step;
+		for (step = 0; step < pressureProjectionSteps; step++) {
+			maxDelta = 0;
+			for (int i = 0; i < length; i++) {
+				for (int j = 0; j < width; j++) {
+					for (int k = 0; k < height; k++) {
+						if (flags[i][j][k] != 'e') {
+							neighborCount = 0;
+							laplacian = 0;
+							if (i > 0) {
+								neighborCount++;
+								laplacian += pressure[i - 1][j][k];
+							}
+							if (i + 1 < length) {
+								neighborCount++;
+								laplacian += pressure[i + 1][j][k];
+							}
+							if (j > 0) {
+								neighborCount++;
+								laplacian += pressure[i][j - 1][k];
+							}
+							if (j + 1 < width) {
+								neighborCount++;
+								laplacian += pressure[i][j + 1][k];
+							}
+							if (k > 0) {
+								neighborCount++;
+								laplacian += pressure[i][j][k - 1];
+							}
+							if (k + 1 < height) {
+								neighborCount++;
+								laplacian += pressure[i][j][k + 1];
+							}
+							if (neighborCount == 0) {
+								pressure[i][j][k] = 0;
+								continue;
+							}
+							laplacian -= delDotU[i][j][k];
+							laplacian *= relax / neighborCount;
+							pOld = pressure[i][j][k];
+							pressure[i][j][k] = (1 - relax) * pressure[i][j][k] + laplacian;
+							maxDelta = std::max(maxDelta, abs(pressure[i][j][k] - pOld));
+						}
+						else {
+							pressure[i][j][k] = 0;
+						}
+					}
 				}
-				if (i == length) {
-					// Only do u
-					u[t1DU(i, j, k)] -= pressure[t1D0(i - 1, j, k)];
-					if (u[t1DU(i, j, k)] > 0) u[t1DU(i, j, k)] = 0;
-				}
-				else if (j == width) {
-					// Only do v
-					v[t1DV(i, j, k)] -= pressure[t1D0(i, j - 1, k)];
-					if (v[t1DV(i, j, k)] > 0) v[t1DV(i, j, k)] = 0;
-				}
-				else if (k == height){
-					// Only do w
-					w[t1DW(i, j, k)] -= pressure[t1D0(i, j, k - 1)];
-					if (w[t1DW(i, j, k)] > 0) w[t1DW(i, j, k)] = 0;
-				}
-				else {
-					ijk = t1D0(i, j, k);
-					if (i == 0) {
-						u[t1DU(i, j, k)] -= pressure[ijk];
-						if (u[t1DU(i, j, k)] < 0) u[t1DU(i, j, k)] = 0;
+			}
+			if (maxDelta < 0.01) break;
+		}
+		std::cout << "steps: " << step << " maxDelta: " << maxDelta << std::endl;
+
+		// Project incompressibility by subtracting u - grad(pressure)
+		for (int i = 0; i <= length; i++) {
+			for (int j = 0; j <= width; j++) {
+				for (int k = 0; k <= height; k++) {
+					if ((i == length) && (j == width) || (j == width && k == height) || (k == height && i == length)) {
+						continue;
+					}
+					if (i == length) {
+						// Only do u
+						u[i][j][k] += pressure[i - 1][j][k];
+						if (u[i][j][k] > 0) u[i][j][k] = 0;
+					}
+					else if (j == width) {
+						// Only do v
+						v[i][j][k] += pressure[i][j - 1][k];
+						if (v[i][j][k] > 0) v[i][j][k] = 0;
+					}
+					else if (k == height){
+						// Only do w
+						w[i][j][k] += pressure[i][j][k - 1];
+						if (w[i][j][k] > 0) w[i][j][k] = 0;
 					}
 					else {
-						u[t1DU(i, j, k)] -= pressure[ijk] - pressure[ijk - 1];
-					}
-					if (j == 0) {
-						v[t1DV(i, j, k)] -= pressure[ijk];
-						if (v[t1DV(i, j, k)] < 0) v[t1DV(i, j, k)] = 0;
-					}
-					else {
-						v[t1DV(i, j, k)] -= pressure[ijk] - pressure[ijk - length];
-					}
-					if (k == 0) {
-						w[t1DW(i, j, k)] -= pressure[ijk];
-						if (w[t1DW(i, j, k)] < 0) w[t1DW(i, j, k)] = 0;
-					}
-					else {
-						w[t1DW(i, j, k)] -= pressure[ijk] - pressure[ijk - elemsPerPlane];
+						if (i == 0) {
+							u[i][j][k] -= pressure[i][j][k];
+							if (u[i][j][k] < 0) u[i][j][k] = 0;
+						}
+						else {
+							u[i][j][k] -= pressure[i][j][k] - pressure[i - 1][j][k];
+						}
+						if (j == 0) {
+							v[i][j][k] -= pressure[i][j][k];
+							if (v[i][j][k] < 0) v[i][j][k] = 0;
+						}
+						else {
+							v[i][j][k] -= pressure[i][j][k] - pressure[i][j - 1][k];
+						}
+						if (k == 0) {
+							w[i][j][k] -= pressure[i][j][k];
+							if (w[i][j][k] < 0) w[i][j][k] = 0;
+						}
+						else {
+							w[i][j][k] -= pressure[i][j][k] - pressure[i][j][k - 1];
+						}
 					}
 				}
 			}
@@ -538,8 +863,7 @@ void MACGrid::advectEverythingElse() {
 	for (int i = 0; i < length; i++) {
 		for (int j = 0; j < width; j++) {
 			for (int k = 0; k < height; k++) {
-				ijk = t1D0(i, j, k);
-				flags[ijk] = 'e';
+				flags[i][j][k] = 'e';
 			}
 		}
 	}
@@ -556,21 +880,21 @@ void MACGrid::advectEverythingElse() {
 		particlesY[i] = particlesY[i] < width ? particlesY[i] : width - 0.0001f;
 		particlesZ[i] = particlesZ[i] > 0 ? particlesZ[i] : 0;
 		particlesZ[i] = particlesZ[i] < height ? particlesZ[i] : height - 0.0001f;
-		flags[t1D0((int)particlesX[i], (int)particlesY[i], (int)particlesZ[i])] = 'f';
+		flags[int(particlesX[i])][int(particlesY[i])][int(particlesZ[i])] = 'f';
 	}
+	// Check for surface cells. If a cell is a surface cell, the unallocated velocities around it become the average velocity of the allocated velocites around it.
 	int X, Y, Z;
 	for (int i = 0; i < length; i++) {
 		for (int j = 0; j < width; j++) {
 			for (int k = 0; k < height; k++) {
-				if (flags[t1D0(i, j, k)] == 'e') {
+				if (flags[i][j][k] == 'e') {
 					for (int n = 0; n < 8; n++) {
 						X = i + neighbors_I[n];
 						Y = j + neighbors_J[n];
 						Z = k + neighbors_K[n];
 						if (X >= 0 && Y >= 0 && Z >= 0 && X < length && Y < width && Z < height) {
-							if (flags[t1D0(X, Y, Z)] == 'f') {
-								flags[t1D0(i, j, k)] = 's';
-								break;
+							if (flags[X][Y][Z] == 'f') {
+								flags[i][j][k] = 's';
 							}
 						}
 					}
@@ -581,26 +905,109 @@ void MACGrid::advectEverythingElse() {
 }
 
 void MACGrid::display() {
-	glUseProgram(program);
-	float c[] = { 0, 0, 1, 1 };
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, c);
-	for (int i = 0; i < numParticles; i++) {
-		glPushMatrix();
-		glTranslated(particlesX[i], particlesY[i], particlesZ[i]);
-		glCallList(PARTICLE_DISPLAY_LIST);
-		glPopMatrix();
+
+	// Draw simulation box
+	glColor3f(0, 0, 1);
+	glBegin(GL_LINE_LOOP);
+	glVertex3f(0, 0, 0);
+	glVertex3f(0, width, 0);
+	glVertex3f(length, width, 0);
+	glVertex3f(length, 0, 0);
+	glEnd();
+
+	glBegin(GL_LINE_LOOP);
+	glVertex3f(0, 0, height);
+	glVertex3f(0, width, height);
+	glVertex3f(length, width, height);
+	glVertex3f(length, 0, height);
+	glEnd();
+
+	glBegin(GL_LINES);
+	glVertex3f(0, 0, 0);
+	glVertex3f(0, 0, height);
+	glVertex3f(0, width, 0);
+	glVertex3f(0, width, height);
+	glVertex3f(length, width, 0);
+	glVertex3f(length, width, height);
+	glVertex3f(length, 0, 0);
+	glVertex3f(length, 0, height);
+	glEnd();
+
+	if (showPressure) {
+		float max = -1E10;
+		for (int i = 0; i < length; i++) {
+			for (int j = 0; j < width; j++) {
+				for (int k = 0; k < height; k++) {
+					if (pressure[i][j][k] > max) {
+						max = pressure[i][j][k];
+					}
+				}
+			}
+		}
+		if (max == 0) max = 1;
+		glUseProgram(program);
+		for (int i = 0; i < length; i++) {
+			for (int j = 0; j < width; j++) {
+				for (int k = 0; k < height; k++) {
+					float d[] = { pressure[i][j][k] / max, 0, 1 - pressure[i][j][k] / max, 1 };
+					if (flags[i][j][k] == 'e') continue;
+					glMaterialfv(GL_FRONT, GL_DIFFUSE, d);
+					glPushMatrix();
+					glTranslated(i + 0.5, j + 0.5, k + 0.5);
+					glCallList(PARTICLE_DISPLAY_LIST);
+					glPopMatrix();
+				}
+			}
+		}
+		glUseProgram(0);
 	}
-	glUseProgram(0);
+
+	if (showParticles) {
+		glUseProgram(program);
+		float c[] = { 0, 0, 1, 1 };
+		for (int i = 0; i < numParticles; i++) {
+			c[1] =  sqrt(particlesZ[i] / float(height));
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, c);
+			glPushMatrix();
+			glTranslated(particlesX[i], particlesY[i], particlesZ[i]);
+			glCallList(PARTICLE_DISPLAY_LIST);
+			glPopMatrix();
+		}
+		glUseProgram(0);
+	}
+
+	if (showVel) {
+		float x, y, z, u, v, w;
+		for (auto i = 0; i < length; i++) {
+			for (auto j = 0; j < width; j++) {
+				for (auto k = 0; k < height; k++) {
+					if (flags[i][j][k] == 'e') continue;
+					x = i + 0.5f;
+					y = j + 0.5f;
+					z = k + 0.5f;
+					u = getU(x, y, z) / 10.0f;
+					v = getV(x, y, z) / 10.0f;
+					w = getW(x, y, z) / 10.0f;
+					glBegin(GL_LINES);
+					glColor3f(0, 0, 0);
+					glVertex3d(x - u * 0.5, y - v * 0.5, z - w * 0.5);
+					glColor3f(1, 1, 1);
+					glVertex3d(x + u * 0.5, y + v * 0.5, z + w * 0.5);
+					glEnd();
+				}
+			}
+		}
+	}
 
 	if (showGrid) {
 		for (int i = 0; i < length; i++) {
 			for (int j = 0; j < width; j++) {
 				for (int k = 0; k < height; k++) {
-					if (flags[t1D0(i, j, k)] != 'e') {
-						if (flags[t1D0(i, j, k)] == 's') {
+					if (flags[i][j][k] != 'e') {
+						if (flags[i][j][k] == 's') {
 							glColor3f(1, 0, 0);
 						}
-						else if (flags[t1D0(i, j, k)] == 'f') {
+						else if (flags[i][j][k] == 'f') {
 							glColor3f(0, 1, 0);
 						}
 						else {
@@ -640,7 +1047,7 @@ void MACGrid::printFlags() {
 	for (int k = 0; k < height; k++) {
 		for (int j = 0; j < width; j++) {
 			for (int i = 0; i < length; i++) {
-				std::cout << flags[t1D0(i,j,k)];
+				std::cout << flags[i][j][k];
 			}
 			std::cout << std::endl;
 		}
@@ -654,8 +1061,7 @@ void MACGrid::printU() {
 	for (int k = 0; k < height; k++) {
 		for (int j = 0; j < width; j++) {
 			for (int i = 0; i <= length; i++) {
-				int ijk = t1DU(i, j, k);
-				cout << u[ijk] << " ";
+				cout << u[i][j][k] << " ";
 			}
 			cout << endl;
 		}
@@ -668,8 +1074,7 @@ void MACGrid::printV() {
 	for (int k = 0; k < height; k++) {
 		for (int j = 0; j <= width; j++) {
 			for (int i = 0; i < length; i++) {
-				int ijk = t1DV(i, j, k);
-				cout << v[ijk] << " ";
+				cout << v[i][j][k] << " ";
 			}
 			cout << endl;
 		}
@@ -682,29 +1087,12 @@ void MACGrid::printW() {
 	for (int k = 0; k <= height; k++) {
 		for (int j = 0; j < width; j++) {
 			for (int i = 0; i < length; i++) {
-				int ijk = t1DW(i, j, k);
-				cout << w[ijk] << " ";
+				cout << w[i][j][k] << " ";
 			}
 			cout << endl;
 		}
 		cout << endl;
 	}
-}
-
-inline int MACGrid::t1D0(int i, int j, int k) {
-	return k * elemsPerPlane + j * length + i;
-}
-
-inline int MACGrid::t1DU(int i, int j, int k) {
-	return k * (elemsPerPlane + width) + j * (length + 1) + i;
-}
-
-inline int MACGrid::t1DV(int i, int j, int k) {
-	return k * (elemsPerPlane + length) + j * length + i;
-}
-
-inline int MACGrid::t1DW(int i, int j, int k) {
-	return k * elemsPerPlane + j * length + i;
 }
 
 inline float MACGrid::T2nu(float T) {
@@ -713,80 +1101,133 @@ inline float MACGrid::T2nu(float T) {
 
 inline float MACGrid::getU(float x, float y, float z) {
 	if (x < 0) x = 0;
-	else if (x > length) x = (float)length;
+	else if (x >= length) x = float(length) - 0.001f;
 	if (y < 0.5) y = 0.5;
-	else if (y > width - 0.5) y = width - 0.5f;
+	else if (y >= width - 0.5) y = width - 0.5001f;
 	if (z < 0.5) z = 0.5;
-	else if (z > height - 0.5) z = height - 0.5f;
-	int i = (int)x;
-	int j = (int)(y - 0.5f);
-	int k = (int)(z - 0.5f);
-	deltaX = x - (int)x;
+	else if (z >= height - 0.5) z = height - 0.5001f;
+	int i = int(x);
+	int j = int(y - 0.5f);
+	int k = int(z - 0.5f);
+	deltaX = x - int(x);
 	deltaY = y - j - 0.5f;
 	deltaZ = z - k - 0.5f;
-	ijk = t1DU(i, j, k);
-	return (1 - deltaZ) * ((1 - deltaY) * ((1 - deltaX) * u[ijk] + deltaX * u[ijk + 1])
-		+ deltaY * ((1 - deltaX) * u[ijk + length + 1] + deltaX * u[ijk + length + 2]))
-		+ deltaZ * ((1 - deltaY) * ((1 - deltaX) * u[ijk + elemsPerPlane + width] + deltaX * u[ijk + elemsPerPlane + width + 1])
-		+ deltaY * ((1 - deltaX) * u[ijk + elemsPerPlane + width + length + 1] + deltaX * u[ijk + elemsPerPlane + width + length + 2]));
+	return (1 - deltaZ) * ((1 - deltaY) * ((1 - deltaX) * u[i][j][k] + deltaX * u[i + 1][j][k])
+		+ deltaY * ((1 - deltaX) * u[i][j + 1][k] + deltaX * u[i + 1][j + 1][k]))
+		+ deltaZ * ((1 - deltaY) * ((1 - deltaX) * u[i][j][k + 1] + deltaX * u[i + 1][j][k + 1])
+		+ deltaY * ((1 - deltaX) * u[i][j + 1][k + 1] + deltaX * u[i + 1][j + 1][k + 1]));
 }
 
 inline float MACGrid::getV(float x, float y, float z) {
 	if (x < 0.5) x = 0.5;
-	else if (x > length - 0.5) x = length - 0.5f;
+	else if (x >= length - 0.5) x = length - 0.5001f;
 	if (y < 0) y = 0;
-	else if (y > width) y = (float)width;
+	else if (y >= width) y = float(width) - 0.001f;
 	if (z < 0.5) z = 0.5;
-	else if (z > height - 0.5) z = height - 0.5f;
-	int i = (int)(x - 0.5f);
-	int j = (int)y;
-	int k = (int)(z - 0.5f);
+	else if (z >= height - 0.5) z = height - 0.5001f;
+	int i = int(x - 0.5f);
+	int j = int(y);
+	int k = int(z - 0.5f);
 	deltaX = x - i - 0.5f;
 	deltaY = y - j;
 	deltaZ = z - k - 0.5f;
-	ijk = t1DV(i, j, k);
-	return (1 - deltaZ) * ((1 - deltaY) * ((1 - deltaX) * v[ijk] + deltaX * v[ijk + 1])
-		+ deltaY * ((1 - deltaX) * v[ijk + length] + deltaX * v[ijk + length + 1]))
-		+ deltaZ * ((1 - deltaY) * ((1 - deltaX) * v[ijk + elemsPerPlane + length] + deltaX * v[ijk + elemsPerPlane + length + 1])
-		+ deltaY * ((1 - deltaX) * v[ijk + elemsPerPlane + length + length] + deltaX * v[ijk + elemsPerPlane + length + length + 1]));
+	return (1 - deltaZ) * ((1 - deltaY) * ((1 - deltaX) * v[i][j][k] + deltaX * v[i + 1][j][k])
+		+ deltaY * ((1 - deltaX) * v[i][j + 1][k] + deltaX * v[i + 1][j + 1 ][k]))
+		+ deltaZ * ((1 - deltaY) * ((1 - deltaX) * v[i][j][k + 1] + deltaX * v[i + 1][j][k])
+		+ deltaY * ((1 - deltaX) * v[i][j + 1][k + 1] + deltaX * v[i + 1][j + 1][k + 1]));
 }
 
 inline float MACGrid::getW(float x, float y, float z) {
 	if (x < 0.5) x = 0.5;
-	else if (x > length-0.5) x = length - 0.5f;
+	else if (x >= length-0.5) x = length - 0.5001f;
 	if (y < 0.5) y = 0.5;
-	else if (y > width - 0.5) y = width - 0.5f;
+	else if (y >= width - 0.5) y = width - 0.5001f;
 	if (z < 0) z = 0;
-	else if (z > height) z = (float)height;
-	int i = (int)(x - 0.5f);
-	int j = (int)(y - 0.5f);
-	int k = (int)z;
+	else if (z >= height) z = float(height) - 0.001f;
+	int i = int(x - 0.5f);
+	int j = int(y - 0.5f);
+	int k = int(z);
 	deltaX = x - i - 0.5f;
 	deltaY = y - j - 0.5f;
 	deltaZ = z - k;
-	ijk = t1DW(i, j, k);
-	return (1 - deltaZ) * ((1 - deltaY) * ((1 - deltaX) * w[ijk] + deltaX * w[ijk + 1])
-		+ deltaY * ((1 - deltaX) * w[ijk + length] + deltaX * w[ijk + length + 1]))
-		+ deltaZ * ((1 - deltaY) * ((1 - deltaX) * w[ijk + elemsPerPlane] + deltaX * w[ijk + elemsPerPlane + 1])
-		+ deltaY * ((1 - deltaX) * w[ijk + elemsPerPlane + length] + deltaX * w[ijk + elemsPerPlane + length + 1]));
+	return (1 - deltaZ) * ((1 - deltaY) * ((1 - deltaX) * w[i][j][k] + deltaX * w[i + 1][j][k])
+		+ deltaY * ((1 - deltaX) * w[i][j + 1][k] + deltaX * w[i + 1][j + 1][k]))
+		+ deltaZ * ((1 - deltaY) * ((1 - deltaX) * w[i][j][k + 1] + deltaX * w[i + 1][j][k + 1])
+		+ deltaY * ((1 - deltaX) * w[i][j + 1][k + 1] + deltaX * w[i + 1][j + 1][k + 1]));
 }
 
-inline float MACGrid::interpolate(float* q, float x, float y, float z) {
+inline float MACGrid::getUB(float x, float y, float z) {
 	if (x < 0) x = 0;
-	else if (x > length - 1) x = length - 1.0f;
+	else if (x >= length) x = float(length) - 0.001f;
+	if (y < 0.5) y = 0.5;
+	else if (y >= width - 0.5) y = width - 0.5001f;
+	if (z < 0.5) z = 0.5;
+	else if (z >= height - 0.5) z = height - 0.5001f;
+	int i = int(x);
+	int j = int(y - 0.5f);
+	int k = int(z - 0.5f);
+	deltaX = x - int(x);
+	deltaY = y - j - 0.5f;
+	deltaZ = z - k - 0.5f;
+	return (1 - deltaZ) * ((1 - deltaY) * ((1 - deltaX) * uB[i][j][k] + deltaX * uB[i + 1][j][k])
+		+ deltaY * ((1 - deltaX) * uB[i][j + 1][k] + deltaX * uB[i + 1][j + 1][k]))
+		+ deltaZ * ((1 - deltaY) * ((1 - deltaX) * uB[i][j][k + 1] + deltaX * uB[i + 1][j][k + 1])
+		+ deltaY * ((1 - deltaX) * uB[i][j + 1][k + 1] + deltaX * uB[i + 1][j + 1][k + 1]));
+}
+
+inline float MACGrid::getVB(float x, float y, float z) {
+	if (x < 0.5) x = 0.5;
+	else if (x >= length - 0.5) x = length - 0.5001f;
 	if (y < 0) y = 0;
-	else if (y > width - 1) y = width - 1.0f;
+	else if (y >= width) y = float(width) - 0.001f;
+	if (z < 0.5) z = 0.5;
+	else if (z >= height - 0.5) z = height - 0.5001f;
+	int i = int(x - 0.5f);
+	int j = int(y);
+	int k = int(z - 0.5f);
+	deltaX = x - i - 0.5f;
+	deltaY = y - j;
+	deltaZ = z - k - 0.5f;
+	return (1 - deltaZ) * ((1 - deltaY) * ((1 - deltaX) * vB[i][j][k] + deltaX * vB[i + 1][j][k])
+		+ deltaY * ((1 - deltaX) * vB[i][j + 1][k] + deltaX * vB[i + 1][j + 1][k]))
+		+ deltaZ * ((1 - deltaY) * ((1 - deltaX) * vB[i][j][k + 1] + deltaX * vB[i + 1][j][k + 1])
+		+ deltaY * ((1 - deltaX) * vB[i][j + 1][k + 1] + deltaX * vB[i + 1][j + 1][k + 1]));
+}
+
+inline float MACGrid::getWB(float x, float y, float z) {
+	if (x < 0.5) x = 0.5;
+	else if (x >= length - 0.5) x = length - 0.5001f;
+	if (y < 0.5) y = 0.5;
+	else if (y >= width - 0.5) y = width - 0.5001f;
 	if (z < 0) z = 0;
-	else if (z > height - 1) z = height - 1.0f;
+	else if (z >= height) z = float(height) - 0.001f;
+	int i = int(x - 0.5f);
+	int j = int(y - 0.5f);
+	int k = int(z);
+	deltaX = x - i - 0.5f;
+	deltaY = y - j - 0.5f;
+	deltaZ = z - k;
+	return (1 - deltaZ) * ((1 - deltaY) * ((1 - deltaX) * wB[i][j][k] + deltaX * wB[i + 1][j][k])
+		+ deltaY * ((1 - deltaX) * wB[i][j + 1][k] + deltaX * wB[i + 1][j + 1][k]))
+		+ deltaZ * ((1 - deltaY) * ((1 - deltaX) * wB[i][j][k + 1] + deltaX * wB[i + 1][j][k + 1])
+		+ deltaY * ((1 - deltaX) * wB[i][j + 1][k + 1] + deltaX * wB[i + 1][j + 1][k + 1]));
+}
+
+inline float MACGrid::interpolate(float*** q, float x, float y, float z) {
+	if (x < 0) x = 0;
+	else if (x >= length - 1) x = length - 1.0001f;
+	if (y < 0) y = 0;
+	else if (y >= width - 1) y = width - 1.0001f;
+	if (z < 0) z = 0;
+	else if (z >= height - 1) z = height - 1.0001f;
 	int i = int(x);
 	int j = int(y);
 	int k = int(z);
 	deltaX = x - i;
 	deltaY = y - j;
 	deltaZ = z - k;
-	ijk = t1D0(i, j, k);
-	return (1 - deltaZ) * ((1 - deltaY) * ((1 - deltaX) * q[ijk] + deltaX * q[ijk + 1])
-		+ deltaY * ((1 - deltaX) * q[ijk + length] + deltaX * q[ijk + length + 1]))
-		+ deltaZ * ((1 - deltaY) * ((1 - deltaX) * q[ijk + elemsPerPlane] + deltaX * q[ijk + elemsPerPlane + 1])
-		+ deltaY * ((1 - deltaX) * q[ijk + elemsPerPlane + length] + deltaX * q[ijk + elemsPerPlane + length + 1]));
+	return (1 - deltaZ) * ((1 - deltaY) * ((1 - deltaX) * q[i][j][k] + deltaX * q[i + 1][j][k])
+		+ deltaY * ((1 - deltaX) * q[i][j + 1][k] + deltaX * q[i + 1][j + 1][k]))
+		+ deltaZ * ((1 - deltaY) * ((1 - deltaX) * q[i][j][k + 1] + deltaX * q[i + 1][j][k + 1])
+		+ deltaY * ((1 - deltaX) * q[i][j + 1][k + 1] + deltaX * q[i + 1][j + 1][k + 1]));
 }
